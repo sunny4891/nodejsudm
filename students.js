@@ -1,7 +1,8 @@
 const express = require("express");
 const studentsRouter = express.Router();
+const middleware = require("./middlaware");
 
-studentsRouter.get("/", (req, res) => {
+studentsRouter.get("/", middleware, (req, res) => {
   res.status(200).json({
     data: {
       studentId: 1,
