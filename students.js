@@ -3,6 +3,7 @@ const studentsRouter = express.Router();
 const middleware = require("./middlaware");
 const joi = require("joi");
 const jwt = require("jsonwebtoken");
+const { nextTick } = require("process");
 
 let students = [
   {
@@ -12,8 +13,13 @@ let students = [
     type: "admin",
   },
 ];
-studentsRouter.get("/", middleware, (req, res) => {
-  res.status(200).json(students);
+studentsRouter.get("/", (req, res, next) => {
+  try {
+    throw new Error("error in get students");
+    res.status(200).json(students);
+  } catch (err) {
+    next(err);
+  }
 });
 
 studentsRouter.get("/profile", (req, res) => {
@@ -76,20 +82,20 @@ studentsRouter.post("/login", (req, res) => {
 });
 
 // post req //
-studentsRouter.post("/", (req, res) => {
+studentsRouter.post("/", (req, res, next) => {
   let token = req.headers.authorization.split(" ")[1];
   if (token) {
     try {
       const jwtData = jwt.verify(token, "1234");
       if (jwtData.type != "admin") {
-        throw new Error();
-      } else {
+        res.status(404);
+        throw new Error("User not Allowed");
       }
     } catch (error) {
-      res.status(404).json({ error });
+      return next(error);
     }
   } else {
-    res.status(404).json({ error });
+    return next(error);
   }
   let schema = joi.object({
     name: joi.string().min(5).max(20).required(),
